@@ -1,0 +1,91 @@
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+.combo {
+    position: relative;
+    width: 100%;
+
+    .combo-title {
+        padding-bottom: 6px;
+        width: max-content;
+        cursor: pointer;
+
+        .combo-title__text {
+            font-weight: bold;
+        }
+
+        .combo-required__text {
+            color: red;
+        }
+    }
+
+    .combo-main-con {
+        display: flex;
+        height: 32px;
+
+        .select-options {
+            display: flex;
+            flex: 1;
+
+            .selected-items {
+                flex: 1;
+                display: flex;
+
+                .selected-item {
+                    .selected-item__text {}
+
+                    .deselect-icon {}
+                }
+            }
+
+            .combo-input {
+                flex: 1;
+            }
+        }
+
+        .combo-actions {
+            display: flex;
+
+            .btn-search,
+            .btn-add,
+            .btn-dropdown {
+                height: 32px;
+                width: 32px;
+                cursor: pointer;
+            }
+
+            .btn-search {}
+
+            .btn-add {}
+
+            .btn-dropdown {}
+        }
+
+    }
+
+    .dropdown-menu {}
+}
+
+.icon-search,
+.icon-add,
+.icon-dropdown {
+    width: 16px;
+    height: 16px;
+    background-size: contain;
+}
+
+.icon-search {
+
+    background: url('~@/assets/images/magnifier-tool.svg') no-repeat center center;
+}
+
+.icon-add {
+    background: url('~@/assets/images/add.svg') no-repeat center center;
+}
+
+.icon-dropdown {
+    background: url('~@/assets/images/caret-down.svg') no-repeat center center;
+}

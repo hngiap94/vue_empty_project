@@ -1,4 +1,4 @@
-# empty_project
+# vue-components
 
 ## Project setup
 ```
