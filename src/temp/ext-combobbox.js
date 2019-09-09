@@ -751,39 +751,43 @@ Ext.define('Ext.form.field.ComboBox', {
         });
     },
     
-    getSubTplData: function(fieldData) {
-        var me = this,
-            id = me.id,
-            data, ariaAttr;
+    // getSubTplData: function(fieldData) {
+    //     var me = this,
+    //         id = me.id,
+    //         data, ariaAttr;
         
-        data = me.callParent([fieldData]);
+    //     data = me.callParent([fieldData]);
         
-        if (!me.ariaStaticRoles[me.ariaRole]) {
-            ariaAttr = data.ariaElAttributes;
+    //     if (!me.ariaStaticRoles[me.ariaRole]) {
+    //         ariaAttr = data.ariaElAttributes;
             
-            if (ariaAttr) {
-                ariaAttr['aria-owns'] = id + '-inputEl ' + id + '-picker-listEl';
+    //         if (ariaAttr) {
+    //             ariaAttr['aria-owns'] = id + '-inputEl ' + id + '-picker-listEl';
                 
-                // TODO Change that to reflect the real behavior
-                ariaAttr['aria-autocomplete'] = 'list';
-            }
-        }
+    //             // TODO Change that to reflect the real behavior
+    //             ariaAttr['aria-autocomplete'] = 'list';
+    //         }
+    //     }
         
-        return data;
-    },
+    //     return data;
+    // },
  
-    getSubTplMarkup: function(fieldData) {
-        var me = this,
-            hiddenDataElMarkup = '',
-            markup = me.callParent(arguments);
+    // getSubTplMarkup: function(fieldData) {
+    //     var me = this,
+    //         hiddenDataElMarkup = '',
+    //         markup = me.callParent(arguments);
  
-        if (me.hiddenName) {
-            hiddenDataElMarkup = '<div id="' + fieldData.id + '-hiddenDataEl" data-ref="hiddenDataEl" class="' + me.hiddenDataCls + '" role="presentation"></div>';
-        }
+    //     if (me.hiddenName) {
+    //         hiddenDataElMarkup = '<div id="' + fieldData.id + '-hiddenDataEl" data-ref="hiddenDataEl" class="' + me.hiddenDataCls + '" role="presentation"></div>';
+    //     }
  
-        return hiddenDataElMarkup + markup;
-    },
+    //     return hiddenDataElMarkup + markup;
+    // },
     
+    /**
+     * Tạo template để hiển thị ra input
+     * @param {*} displayTpl 
+     */
     applyDisplayTpl: function(displayTpl) {
         var me = this;
  
@@ -901,6 +905,10 @@ Ext.define('Ext.form.field.ComboBox', {
         }
     },
  
+    /**
+     * Called when focus leaves this input field. Used to postprocess raw values and perform conversion and validation.
+     * @param {*} e 
+     */
     completeEdit: function(e) {
         var me = this;
  
@@ -923,27 +931,27 @@ Ext.define('Ext.form.field.ComboBox', {
         }
     },
     
-    onAltDownArrow: function(e) {
-        e.stopEvent();
+    // onAltDownArrow: function(e) {
+    //     e.stopEvent();
         
-        if (!this.isExpanded) {
-            this.onDownArrow(e);
-        }
+    //     if (!this.isExpanded) {
+    //         this.onDownArrow(e); // FIXME: Không thấy hàm này ở đâu
+    //     }
         
-        // Stop further keyNav processing
-        return false;
-    },
+    //     // Stop further keyNav processing
+    //     return false;
+    // },
     
-    onAltUpArrow: function(e) {
-        e.stopEvent();
+    // onAltUpArrow: function(e) {
+    //     e.stopEvent();
         
-        if (this.isExpanded) {
-            this.onEsc(e);
-        }
+    //     if (this.isExpanded) {
+    //         this.onEsc(e); // FIXME: Không thấy hàm này ở đâu
+    //     }
         
-        // Stop further keyNav processing
-        return false;
-    },
+    //     // Stop further keyNav processing
+    //     return false;
+    // },
  
     /**
      * @private
