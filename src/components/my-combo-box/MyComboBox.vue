@@ -436,18 +436,20 @@ export default {
     },
 
     /**
-     * Kiểm tra tính hợp lệ của giá trị(value) combo
+     * Kiểm tra tính hợp lệ của giá trị(value) hoặc item của combo
+     * TODO: Trường hợp string rỗng ('')?
      */
-    isValidValue(value) {
+    isValid(val) {
       // Kiểm tra object rỗng
-      if (typeof value === "object") {
-        return !_.isEmpty(value);
+      if (typeof val === "object") {
+        return !_.isEmpty(val);
       }
       // kiểm tra dữ liệu nguyên thủy
-      return value !== null && value !== undefined;
+      return val !== undefined;
     },
 
     isStoreEmpty() {
+      let me = this;
       return me.datax.length === 0;
     },
 
@@ -464,18 +466,21 @@ export default {
     /**
      * hàm set giá trị default của combo
      */
-    setDefaultValue() {
+    setDefaultValue(defaultVal) {
       let me = this;
-      me.queryString = me.defaultValue;
+      me.setRawValue(defaultVal);
     },
 
     /**
      * Hàm thực hiện select giá trị khi có sự thay đổi của value
+     * value: null, dữ liệu kiểu nguyên thủy, Object
      * TODO: Chỉnh lại
      */
-    doSelectValue() {
-      // let me = this,
-      //   item = me.getItemFromValueField(me.value);
+    doSelectValue(value) {
+      let me = this,
+        item = me.getItemByValue(value);
+
+      me.select(item, false, true);
       // if (item) {
       //   me.select(item);
       // } else {
@@ -511,6 +516,46 @@ export default {
       if (target.closest(".my-combo") !== me.$refs.myCombo) {
         me.collapse();
       }
+    },
+
+    /**
+     * lấy ra trường hiển thị của combo
+     * Nếu không được khai báo trên props, kiểm tra trường valueField
+     * - Nếu có giá trị valueField, lúc này hiểu là displayField = valueField
+     * - Nếu không có giá trị valueField, lúc này hiểu là dữ liệu nguyên thủy(không sử dụng tới displayField, valueField)
+     */
+    getItemDisplayField() {
+      let me = this,
+        valueField;
+      if (!me.displayField) {
+        valueField = me.getItemValueField();
+        if (valueField) {
+          return valueField;
+        }
+        return "";
+      }
+      return me.displayField;
+    },
+
+    /**
+     * lấy ra trường giá trị của combo
+     * Nếu không được khai báo trên props, có 2 trường hợp xảy ra:
+     * - TH1: Dữ liệu combo là kiểu dữ liệu nguyên thủy (không sử dụng tới displayField, valueField)
+     * - TH2: Có giá trị displayField, cần báo lỗi cho DEV vì TH này không thể xảy ra.
+     */
+    getItemValueField() {
+      let me = this,
+        displayField;
+      if (!me.valueField) {
+        displayField = me.displayField;
+        if (displayField) {
+          throw new Error(
+            "DEV: có khai báo displayField nhưng không khai báo valueField?"
+          );
+        }
+        return "";
+      }
+      return me.valueField;
     },
 
     /**
@@ -560,6 +605,42 @@ export default {
     },
 
     /**
+     * Tìm item khi biết giá trị của displayField
+     */
+    getItemByDisplayValue(value) {
+      let me = this;
+      let item = me.datax.find(itemData => {
+        return _.isEqual(
+          me.getItemDisplayValue(itemData).toLowerCase(),
+          value.toLowerCase()
+        );
+      });
+
+      if (item) {
+        return item;
+      }
+      return null;
+    },
+
+    /**
+     * Tìm item khi biết giá trị của valueField
+     * return: null neu khong co item nao match
+     */
+    getItemByValue(value) {
+      let me = this;
+      if (me.isValid(value)) {
+        let item = me.datax.find(itemData => {
+          return _.isEqual(me.getItemValue(itemData), value);
+        });
+
+        if (item) {
+          return item;
+        }
+      }
+      return null;
+    },
+
+    /**
      * Lấy giá trị(value) của combo
      */
     getComboValue() {
@@ -599,7 +680,7 @@ export default {
       let me = this,
         submitValue;
       submitValue = me.getItemValue(item);
-      if (!me.isValidValue(submitValue)) {
+      if (!me.isValid(submitValue)) {
         return "";
       }
       return submitValue;
@@ -680,34 +761,51 @@ export default {
     /**
      * Chọn một item
      * item có 2 kiểu dữ liệu: Kiểu nguyên thủy, Object
+     * Cho phép null
      * TODO: Chưa gặp trường hợp item là Object rỗng {}, nếu gặp sẽ phải xử lý ở đây (ex: isValidItem)
      */
     select(item, silent, collapse) {
-      let me = this;
-      // doSelect
-      if (item) {
-        me.doSelect(item, silent);
+      let me = this,
+        displayValue;
+      if (me.isValid(item)) {
+        displayValue = me.getItemDisplayValue(item);
+        me.setRawValue(displayValue);
+        if (!me.isItemSelected(item)) {
+          me.doSelect(item, silent);
+        }
       } else {
-        // Trường hợp null, undefined
+        // Trường hợp null, undefined, {}
         // reset combo
+        me.resetCombo();
       }
 
       // xu ly sau khi chon
       me.afterSelect(item, collapse);
     },
 
+    resetCombo() {
+      let me = this,
+        lastSelected = me.getLastSelected();
+
+      me.setRawValue("");
+      me.setSelected(null);
+      me.setSubmitValue(null);
+      me.$emit("selected", null, lastSelected, me);
+      me.setLastSelected(null);
+    },
+
     doSelect(item, silent) {
       let me = this,
-        displayValue = me.getItemDisplayValue(item),
         submitValue = me.getSubmitValue(item),
         lastSelected = me.getLastSelected();
 
-      me.setRawValue(displayValue);
       me.setSelected(item);
       if (!silent) {
         me.setSubmitValue(submitValue);
         me.$emit("selected", item, lastSelected, me);
       }
+
+      me.setLastSelected(item);
     },
 
     /**
@@ -732,7 +830,6 @@ export default {
       if (collapse) {
         me.collapse();
       }
-      me.setLastSelected(item);
     },
 
     /**
@@ -755,62 +852,6 @@ export default {
      */
     itemsComparator(firstItem, secondItem) {
       return _.isEqual(firstItem, secondItem);
-    },
-
-    /**
-     * lấy ra trường hiển thị của combo
-     * Nếu không được khai báo trên props, kiểm tra trường valueField
-     * - Nếu có giá trị valueField, lúc này hiểu là displayField = valueField
-     * - Nếu không có giá trị valueField, lúc này hiểu là dữ liệu nguyên thủy(không sử dụng tới displayField, valueField)
-     */
-    getItemDisplayField() {
-      let me = this,
-        valueField;
-      if (!me.displayField) {
-        valueField = me.getItemValueField();
-        if (valueField) {
-          return valueField;
-        }
-        return "";
-      }
-      return me.displayField;
-    },
-
-    /**
-     * lấy ra trường giá trị của combo
-     * Nếu không được khai báo trên props, có 2 trường hợp xảy ra:
-     * - TH1: Dữ liệu combo là kiểu dữ liệu nguyên thủy (không sử dụng tới displayField, valueField)
-     * - TH2: Có giá trị displayField, cần báo lỗi cho DEV vì TH này không thể xảy ra.
-     */
-    getItemValueField() {
-      let me = this,
-        displayField;
-      if (!me.valueField) {
-        displayField = me.displayField;
-        if (displayField) {
-          throw new Error(
-            "DEV: có khai báo displayField nhưng không khai báo valueField?"
-          );
-        }
-        return "";
-      }
-      return me.valueField;
-    },
-
-    /**
-     * Tìm item khi biết giá trị của displayField
-     */
-    getItemFromDisplayField() {},
-
-    /**
-     * Tìm item khi biết giá trị của valueField
-     */
-    getItemFromValueField(value) {
-      let me = this;
-      let item = me.datax.find(itemData => {
-        return me.getItemValueField(itemData) === value;
-      });
-      return item;
     },
 
     /**
@@ -859,16 +900,17 @@ export default {
     onInputBlur(event) {
       let me = this;
       me.isFocus = false;
-      if(me.forceSelection){
+      if (me.forceSelection) {
         // Trường hợp người dùng gõ xong tab ra luôn
         // Dữ liệu query từ server về chậm, 2 TH xảy ra
         // - TH1: chưa load dữ liệu lần nào, datax rỗng
         // - TH2: có datax nhưng là dữ liệu cũ, không sử dụng được
-        if(!me.isStoreEmpty()){
+        if (!me.isStoreEmpty()) {
           me.validateForceSelection();
         }
       } else {
-
+        // Kiem tra item co trong danh sach hay khong
+        me.checkItemInList();
       }
       // me.validateForceSelection();
     },
@@ -876,7 +918,7 @@ export default {
     validateForceSelection() {
       let me = this;
       // TODO: viết hàm này sau đó sử dụng setErrors của vee validate
-      if(me.rollbackLastSelected){
+      if (me.rollbackLastSelected) {
         // rollback lai
       }
     },
@@ -902,17 +944,28 @@ export default {
       me.afterQuery(expand);
     },
     afterQuery(expand) {
-      let me = this;
+      let me = this,
+        rawValue = me.getRawValue();
       if (expand) {
         me.expand();
       }
 
       //TODO: Neu co item trung voi queryString thi select
-      me.checkItemInList();
+      if (rawValue) {
+        let item = me.checkItemInList();
+        if (item) {
+          me.select(item, false, false);
+        }
+      }
     },
-    checkItemInList(){
-      let me = this, item, rawValue;
-      return item;
+
+    /**
+     * Tam thoi de trong ham
+     * sau nay co the khong dung ham nay
+     */
+    checkItemInList(rawValue) {
+      let me = this;
+      return me.getItemByDisplayValue(rawValue);
     },
     appendRules(currentRules, appendRules) {
       return currentRules + "|" + appendRules;
@@ -923,14 +976,15 @@ export default {
     me.initCombo();
   },
   mounted() {
-    let me = this;
+    let me = this,
+      value = me.getComboValue();
 
     if (me.autoLoad) {
       me.doQuery("", false);
     }
 
-    if (me.value && me.datax.length !== 0) {
-      me.doSelectValue();
+    if (me.isValid(value) && !me.isStoreEmpty()) {
+      me.doSelectValue(value);
     }
 
     if (me.defaultValue) {

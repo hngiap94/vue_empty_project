@@ -56,6 +56,10 @@
         <span>{{ errors[0] }}</span>
       </validation-provider>
     </div>
+
+    <div class="test-area">
+      <button @click="testFnc">Test</button>
+    </div>
   </div>
 </template>
 
@@ -133,6 +137,11 @@ export default {
           ]
         }
       });
+    }
+  },
+  methods: {
+    testFnc() {
+      debugger;
     }
   },
   mounted() {
