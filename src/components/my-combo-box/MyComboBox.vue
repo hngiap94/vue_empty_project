@@ -49,68 +49,22 @@
     <!-- #endregion -->
 
     <!-- #region: dropdown menu -->
-    <transition :name="transition">
-      <div class="dropdown-menu" v-if="isExpanded">
-        <div class="dropdown-menu-header" v-if="comboType !== 1">
-          <table class="dropdown-menu-table">
-            <thead>
-              <tr>
-                <td
-                  class="table-td"
-                  v-for="(column, index) in comboColumns"
-                  :key="index"
-                  :title="column.tooltip"
-                  :style="tdStyles(column)"
-                >{{ column.title }}</td>
-              </tr>
-            </thead>
-          </table>
-        </div>
-        <div class="dropdown-menu-body">
-          <ul class="dropdown-items" v-if="comboType === 1">
-            <!-- @mouseover="typeAheadPointer = index" -->
-            <li
-              class="dropdown-item"
-              v-for="(item, index) in datax"
-              :key="index"
-              :class="{'dropdown-item--selected': isItemSelected(item), 'dropdown-item--highlight': true}"
-              @click.prevent.stop="select(item, false, true)"
-            >{{ getItemDisplayValue(item) }}</li>
-          </ul>
 
-          <div class="dropdown-items" v-else>
-            <table class="dropdown-menu-table">
-              <tbody>
-                <tr
-                  class="dropdown-item"
-                  v-for="(item, trIndex) in datax"
-                  :key="trIndex"
-                  :class="{'dropdown-item--selected': isItemSelected(item), 'dropdown-item--highlight': true}"
-                  @click.prevent.stop="select(item, false, true)"
-                >
-                  <td
-                    class="table-td"
-                    v-for="(column, tdIndex) in comboColumns"
-                    :key="tdIndex"
-                    :style="tdStyles(column)"
-                  >{{ item[column.field] }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <!-- TODO: Chưa vẽ -->
-        <div class="loading"></div>
-        <div class="btn-add-menu"></div>
-      </div>
-    </transition>
+    <dropdown-menu ref="dropdownMenu" :comboType="comboType" :transition="transition">
+      <!-- :class="{'dropdown-item--selected': isItemSelected(item), 'dropdown-item--highlight': true}" -->
+      <!-- @click.prevent.stop="select(item, false, true)" -->
+      <menu-item v-for="(item, index) in datax" :key="index">{{ getItemDisplayValue(item) }}</menu-item>
+    </dropdown-menu>
     <!-- #endregion -->
   </div>
 </template>
 
 <script>
-import MyStore from "@/api/store.js";
 import BaseComponent from "@/components/base/BaseComponent.vue";
+import DropdownMenu from "./DropdownMenu.vue";
+import MenuItem from "./MenuItem.vue";
+
+import MyStore from "@/api/store.js";
 import _ from "lodash";
 import { ValidationProvider, extend } from "vee-validate";
 import { required } from "vee-validate/dist/rules";
@@ -126,6 +80,8 @@ export default {
   name: "MyComboEditor",
   extends: BaseComponent,
   components: {
+    DropdownMenu,
+    MenuItem,
     ValidationProvider
   },
   props: {
@@ -724,6 +680,28 @@ export default {
       }
     },
 
+    /**t
+     * hiện dropdown menu
+     */
+    expand() {
+      let me = this,
+        dropdownMenu = me.$refs.dropdownMenu;
+      if (!me.isExpanded) {
+        me.isExpanded = dropdownMenu.isExpanded = true;
+      }
+    },
+
+    /**
+     * Ẩn dropdown menu
+     */
+    collapse() {
+      let me = this,
+        dropdownMenu = me.$refs.dropdownMenu;
+      if (me.isExpanded) {
+        me.isExpanded = dropdownMenu.isExpanded = false;
+      }
+    },
+
     /**
      * handle sự kiện khi click vào button dropdown
      */
@@ -735,26 +713,6 @@ export default {
         me.collapse();
       } else {
         me.doQuery("", true);
-      }
-    },
-
-    /**t
-     * hiện dropdown menu
-     */
-    expand() {
-      let me = this;
-      if (!me.isExpanded) {
-        me.isExpanded = true;
-      }
-    },
-
-    /**
-     * Ẩn dropdown menu
-     */
-    collapse() {
-      let me = this;
-      if (me.isExpanded) {
-        me.isExpanded = false;
       }
     },
 
@@ -910,7 +868,7 @@ export default {
         }
       } else {
         // Kiem tra item co trong danh sach hay khong
-        me.checkItemInList();
+        // let item = me.checkItemInList();
       }
       // me.validateForceSelection();
     },
@@ -952,10 +910,10 @@ export default {
 
       //TODO: Neu co item trung voi queryString thi select
       if (rawValue) {
-        let item = me.checkItemInList();
-        if (item) {
-          me.select(item, false, false);
-        }
+        // let item = me.checkItemInList();
+        // if (item) {
+        //   me.select(item, false, false);
+        // }
       }
     },
 
@@ -994,6 +952,6 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import "@/assets/scss/components/myComboBox.scss";
 </style>
