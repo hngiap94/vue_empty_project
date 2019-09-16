@@ -1,47 +1,33 @@
 <template>
   <transition :name="transition">
     <div class="dropdown-menu" v-if="isExpanded" :style="menuStyles">
-      <div class="dropdown-menu-header" v-if="comboType !== 1">
-        <!-- <table class="dropdown-menu-table">
-            <thead>
-              <tr>
-                <td
-                  class="table-td"
-                  v-for="(column, index) in comboColumns"
-                  :key="index"
-                  :title="column.tooltip"
-                  :style="tdStyles(column)"
-                >{{ column.title }}</td>
-              </tr>
-            </thead>
-        </table>-->
+      <div class="dropdown-menu-header-con" v-if="comboType !== 1">
+        <table class="dropdown-menu-table">
+          <thead class="dropdown-menu-header">
+            <tr>
+              <th
+                class="menu-header__th"
+                v-for="(column, index) in columnx"
+                :key="index"
+                :title="column.tooltip"
+                :style="getThStyles(column)"
+              >
+                <span>{{ column.title }}</span>
+              </th>
+            </tr>
+          </thead>
+        </table>
       </div>
-      <div class="dropdown-menu-body">
-        <ul class="dropdown-items" v-if="comboType === 1">
-          <!-- @mouseover="typeAheadPointer = index" -->
+      <div class="dropdown-menu-body-con">
+        <ul ref="dropdownItems" class="dropdown-items" v-if="comboType === 1">
           <slot></slot>
         </ul>
 
-        <!-- <div class="dropdown-items" v-else>
-            <table class="dropdown-menu-table">
-              <tbody>
-                <tr
-                  class="dropdown-item"
-                  v-for="(item, trIndex) in datax"
-                  :key="trIndex"
-                  :class="{'dropdown-item--selected': isItemSelected(item), 'dropdown-item--highlight': true}"
-                  @click.prevent.stop="select(item, false, true)"
-                >
-                  <td
-                    class="table-td"
-                    v-for="(column, tdIndex) in comboColumns"
-                    :key="tdIndex"
-                    :style="tdStyles(column)"
-                  >{{ item[column.field] }}</td>
-                </tr>
-              </tbody>
-            </table>
-        </div>-->
+        <table class="dropdown-menu-table" v-else>
+          <tbody ref="dropdownItems" class="dropdown-items">
+            <slot></slot>
+          </tbody>
+        </table>
       </div>
       <!-- TODO: Chưa vẽ -->
       <div class="loading"></div>
@@ -54,6 +40,28 @@
 export default {
   name: "DropdownMenu",
   props: {
+    comboType: {
+      type: Number,
+      default: 1
+    },
+    hasAddButton: {
+      type: Boolean,
+      default: false
+    },
+    btnAddOnMenu: {
+      type: Boolean,
+      default: false
+    },
+    columnx: {
+      type: Array,
+      default() {
+        return [];
+      }
+    },
+    loading: {
+      type: Boolean,
+      default: false
+    },
     /**
      * Hiệu ứng dropdown menu của combo
      */
@@ -65,7 +73,6 @@ export default {
   data() {
     let me = this;
     return {
-      comboType: 1,
       isExpanded: false,
       topx: 0,
       leftx: 0,
@@ -91,6 +98,13 @@ export default {
     }
   },
   methods: {
+    getThStyles(column) {
+      let me = this;
+      return {
+        width: column.width ? `${column.width}px` : null,
+        textAlign: column.titleAlign ? column.titleAlign : null
+      };
+    },
     appendBody() {
       let me = this,
         elm = me.$el;

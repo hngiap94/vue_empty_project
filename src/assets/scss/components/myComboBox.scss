@@ -96,12 +96,15 @@
     white-space: nowrap;
     z-index: 999;
 
-    .dropdown-menu-header {
+    .dropdown-menu-header-con {
         background-color: #ddd;
 
+        .dropdown-menu-header {
+            .menu-header__th {}
+        }
     }
 
-    .dropdown-menu-body {
+    .dropdown-menu-body-con {
         .dropdown-items {
             max-height: 160px;
             overflow-y: overlay;
@@ -113,13 +116,9 @@
                 cursor: pointer;
             }
 
-            .dropdown-item:hover {
+            .dropdown-item--highlight {
+                color: #34bd44;
                 background-color: #e5e5e5;
-            }
-
-            .dropdown-item--selected {
-                color: #00f52d;
-                background-color: #dcfdbc;
             }
         }
     }
@@ -128,7 +127,7 @@
         border-collapse: collapse;
     }
 
-    .table-td {
+    .item__td {
         height: 32px;
         line-height: 32px;
         padding: 0 10px;

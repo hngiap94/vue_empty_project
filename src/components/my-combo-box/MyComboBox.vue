@@ -12,7 +12,7 @@
       :rules="validateRules"
       :debounce="500"
       v-slot="{invalid, errors}"
-      :name="title"
+      :name="comboName"
     >
       <p>{{invalid}}</p>
       <p>{{errors}}</p>
@@ -49,11 +49,25 @@
     <!-- #endregion -->
 
     <!-- #region: dropdown menu -->
-
-    <dropdown-menu ref="dropdownMenu" :comboType="comboType" :transition="transition">
-      <!-- :class="{'dropdown-item--selected': isItemSelected(item), 'dropdown-item--highlight': true}" -->
-      <!-- @click.prevent.stop="select(item, false, true)" -->
-      <menu-item v-for="(item, index) in datax" :key="index">{{ getItemDisplayValue(item) }}</menu-item>
+    <dropdown-menu
+      ref="dropdownMenu"
+      :comboType="comboType"
+      :columnx="columnx"
+      :transition="transition"
+    >
+      <menu-item
+        v-for="(item, itemIndex) in dataShow"
+        :key="itemIndex"
+        :comboType="comboType"
+        :item="item"
+        :columnx="columnx"
+        :loading="loading"
+        :class="{
+           'dropdown-item--highlight': itemIndex === typeAheadPointer
+        }"
+        @mouseover.stop="typeAheadPointer = itemIndex"
+        @click.prevent.stop="select(item, false, true)"
+      ></menu-item>
     </dropdown-menu>
     <!-- #endregion -->
   </div>
@@ -64,12 +78,14 @@ import BaseComponent from "@/components/base/BaseComponent.vue";
 import DropdownMenu from "./DropdownMenu.vue";
 import MenuItem from "./MenuItem.vue";
 
-import MyStore from "@/api/store.js";
-import _ from "lodash";
 import { ValidationProvider, extend } from "vee-validate";
 import { required } from "vee-validate/dist/rules";
-import commonValidations from "@/common/commonValidations.js";
-import customError from "@/common/customError.js";
+// import commonValidations from "@/common/commonValidations.js";
+// import customError from "@/common/customError.js";
+
+import comboUtils from "@/components/my-combo-box/combo-mixins/comboUtils.js";
+import pointerScroll from "@/components/my-combo-box/combo-mixins/pointerScroll.js";
+import typeAheadPointer from "@/components/my-combo-box/combo-mixins/typeAheadPointer.js";
 
 extend("required", {
   ...required,
@@ -79,6 +95,7 @@ extend("required", {
 export default {
   name: "MyComboEditor",
   extends: BaseComponent,
+  mixins: [comboUtils, pointerScroll, typeAheadPointer],
   components: {
     DropdownMenu,
     MenuItem,
@@ -86,77 +103,9 @@ export default {
   },
   props: {
     /**
-     * Giá trị của combo
+     * TODO: Chưa sử dụng
      */
-    value: {},
-
-    /**
-     * Nội dung title của combo
-     */
-    title: {
-      type: String,
-      default: ""
-    },
-
-    /**
-     * Tooltip cho tittle của combo
-     */
-    tooltip: {
-      type: String,
-      default: ""
-    },
-
-    /**
-     * Combo yêu cầu chọn
-     */
-    required: {
-      type: Boolean,
-      default: false
-    },
-
     selectOnTab: {
-      type: Boolean,
-      default: false
-    },
-
-    forceSelection: {
-      type: Boolean,
-      default: false
-    },
-
-    rules: {
-      type: String,
-      default: ""
-    },
-
-    /**
-     * placeholder cho combo
-     */
-    placeholder: {
-      type: String,
-      default: ""
-    },
-
-    /**
-     * Ẩn hiện button "Thêm"
-     */
-    hasAddButton: {
-      type: Boolean,
-      default: false
-    },
-
-    /**
-     * Set vị trí cho button "Thêm"
-     */
-    btnAddOnMenu: {
-      type: Boolean,
-      default: false
-    },
-
-    /**
-     * Ẩn hiện button "Tìm kiếm nhanh"
-     */
-    hasQuickSearchButton: {
       type: Boolean,
       default: false
     },
@@ -169,322 +118,31 @@ export default {
     mode: {
       type: String,
       default: "dropdown"
-    },
-
-    /**
-     * Lựa chọn combo dạng tree
-     */
-    comboTree: {
-      type: Boolean,
-      default: false
-    },
-
-    /**
-     * Cấu hình cột cho combo
-     */
-    columns: {
-      type: Array,
-      default() {
-        return [];
-      }
-    },
-
-    /**
-     * Store load dữ liệu cho combo
-     */
-    store: {
-      type: MyStore
-    },
-
-    /**
-     * Chế độ query của combo
-     */
-    queryMode: {
-      type: String,
-      default: "remote"
-    },
-
-    /**
-     * Tự động load dữ liệu khi khởi tạo combo
-     */
-    autoLoad: {
-      type: Boolean,
-      default: false
-    },
-
-    /**
-     * Trường hiển thị của combo
-     */
-    displayField: {
-      type: String,
-      default: ""
-    },
-
-    /**
-     * Trường lấy dữ liệu của combo
-     */
-    valueField: {
-      type: String,
-      default: ""
-    },
-
-    /**
-     * giá trị mặc định của combo
-     */
-    defaultValue: {
-      type: String,
-      default: ""
-    },
-
-    /**
-     * Hiệu ứng dropdown menu của combo
-     */
-    transition: {
-      type: String,
-      default: "fade"
     }
   },
   data() {
     let me = this;
     return {
       /**
-       * Loại combo
-       */
-      comboType: 1,
-
-      /**
-       * Dữ liệu của combo
-       */
-      datax: me.store.data.items,
-
-      /**
-       * Thuộc tính ẩn hiện dropdown menu
-       */
-      isExpanded: false,
-
-      /**
-       * Chứa danh sách item được chọn
-       */
-      selected: null,
-
-      /**
-       * Chứa danh sách item được chọn trước đó
-       */
-      lastSelected: null,
-
-      /**
-       * Chứa chuỗi input người dùng nhập vào
-       */
-      queryString: "",
-
-      /**
        * Thuộc tính edit của combo
        */
-      editable: true,
-
-      /**
-       * Trạng thái focus của combo
-       */
-      isFocus: false,
-
-      defaultColumn: {
-        title: "",
-        tooltip: "",
-        field: "",
-        width: 150,
-        titleAlign: "left",
-        columnAlign: "left"
-      }
+      editable: true
     };
   },
-  computed: {
-    /**
-     * Binding các sự kiện của combo
-     */
-    listeners() {
-      let me = this;
-      return {
-        ...me.$listeners,
-        click: event => me.onInputClick(event),
-        keydown: event => me.onInputKeyDown(event),
-        keyup: event => me.onInputKeyUp(event),
-        focus: event => me.onInputFocus(event),
-        blur: event => me.onInputBlur(event),
-        input: event => me.onInput(event)
-      };
-    },
-
-    /**
-     * các class trạng thái của combo
-     */
-    stateClasses() {
-      let me = this;
-      return {
-        "combo--open": me.isExpanded,
-        "combo--uneditable": !me.editable,
-        "combo--readonly": me.isReadOnly,
-        "combo--disabled": me.isDisabled,
-        "combo--focus": me.isFocus
-      };
-    },
-
-    /**
-     * Lấy cấu hình column, có default
-     */
-    comboColumns() {
-      let me = this,
-        comboColumns = [];
-      if (me.columns && me.columns.length !== 0) {
-        for (const column of me.columns) {
-          comboColumns.push(Object.assign({}, me.defaultColumn, column));
-        }
-        return comboColumns;
-      }
-    },
-
-    /**
-     * rules validate của combo
-     */
-
-    validateRules() {
-      let me = this,
-        rules = "";
-      if (me.required) {
-        rules = "required";
-      }
-      if (me.rules) {
-        me.appendRules(rules, me.rules);
-      }
-      return rules;
-    }
-  },
-  watch: {
-    isExpanded(value) {
-      let me = this;
-      if (value) {
-        document.addEventListener("click", me.onDocumentClick);
-      } else {
-        document.removeEventListener("click", me.onDocumentClick);
-      }
-    },
-    defaultValue: {
-      handler: "setDefaultValue"
-    },
-    value: {
-      handler: "doSelectValue"
-    }
-  },
+  computed: {},
+  watch: {},
   methods: {
-    /**
-     * Hàm khởi tạo combo
-     */
-    initCombo() {
-      let me = this;
-      if (me.mode === "dropdownlist") {
-        me.editable = false;
-      }
-
-      if (me.comboTree) {
-        me.comboType = 3;
-      } else if (me.columns && me.columns.length !== 0) {
-        me.comboType = 2;
-      }
-    },
-
-    /**
-     * Kiểm tra tính hợp lệ của giá trị(value) hoặc item của combo
-     * TODO: Trường hợp string rỗng ('')?
-     */
-    isValid(val) {
-      // Kiểm tra object rỗng
-      if (typeof val === "object") {
-        return !_.isEmpty(val);
-      }
-      // kiểm tra dữ liệu nguyên thủy
-      return val !== undefined;
-    },
-
-    isStoreEmpty() {
-      let me = this;
-      return me.datax.length === 0;
-    },
-
-    /**
-     * set style cho <td> dropdown menu
-     */
-    tdStyles(column) {
-      let me = this;
-      return {
-        width: column.width ? `${column.width}px` : null
-      };
-    },
-
-    /**
-     * hàm set giá trị default của combo
-     */
-    setDefaultValue(defaultVal) {
-      let me = this;
-      me.setRawValue(defaultVal);
-    },
-
-    /**
-     * Hàm thực hiện select giá trị khi có sự thay đổi của value
-     * value: null, dữ liệu kiểu nguyên thủy, Object
-     * TODO: Chỉnh lại
-     */
-    doSelectValue(value) {
-      let me = this,
-        item = me.getItemByValue(value);
-
-      me.select(item, false, true);
-      // if (item) {
-      //   me.select(item);
-      // } else {
-      //   me.queryString = "";
-      // }
-    },
-
-    /**
-     * handle sự kiện click button "Tìm kiếm nhanh"
-     */
-    onBtnQuickSearchClick() {
-      let me = this;
-      me.collapse();
-      me.$emit("clickQuickSearch", event);
-    },
-
-    /**
-     * handle sự kiện click button "Thêm"
-     */
-    onBtnAddClick() {
-      let me = this;
-      me.collapse();
-      me.$emit("clickAdd", event);
-    },
-
-    /**
-     * handle sự kiện click một nơi bất kỳ trên document
-     * sử dụng để collapse combo khi click ra ngoài
-     */
-    onDocumentClick() {
-      let me = this,
-        target = event.target;
-      if (target.closest(".my-combo") !== me.$refs.myCombo) {
-        me.collapse();
-      }
-    },
-
     /**
      * lấy ra trường hiển thị của combo
      * Nếu không được khai báo trên props, kiểm tra trường valueField
      * - Nếu có giá trị valueField, lúc này hiểu là displayField = valueField
      * - Nếu không có giá trị valueField, lúc này hiểu là dữ liệu nguyên thủy(không sử dụng tới displayField, valueField)
      */
-    getItemDisplayField() {
+    getDisplayField() {
       let me = this,
         valueField;
       if (!me.displayField) {
-        valueField = me.getItemValueField();
+        valueField = me.getValueField();
         if (valueField) {
           return valueField;
         }
@@ -499,7 +157,7 @@ export default {
      * - TH1: Dữ liệu combo là kiểu dữ liệu nguyên thủy (không sử dụng tới displayField, valueField)
      * - TH2: Có giá trị displayField, cần báo lỗi cho DEV vì TH này không thể xảy ra.
      */
-    getItemValueField() {
+    getValueField() {
       let me = this,
         displayField;
       if (!me.valueField) {
@@ -543,7 +201,7 @@ export default {
         displayField;
 
       if (typeof item === "object") {
-        displayField = me.getItemDisplayField();
+        displayField = me.getDisplayField();
         if (!displayField) {
           // throw new Error(
           //   "DEV: Không phải kiểu dữ liệu nguyên thủy, chưa khai báo displayField hoặc valueField"
@@ -611,7 +269,7 @@ export default {
       let me = this,
         valueField;
       if (typeof item === "object") {
-        valueField = me.getItemValueField();
+        valueField = me.getValueField();
         if (!valueField) {
           // throw new Error(
           //   "DEV: Không phải kiểu dữ liệu nguyên thủy, valueField là bắt buộc."
@@ -680,42 +338,6 @@ export default {
       }
     },
 
-    /**t
-     * hiện dropdown menu
-     */
-    expand() {
-      let me = this,
-        dropdownMenu = me.$refs.dropdownMenu;
-      if (!me.isExpanded) {
-        me.isExpanded = dropdownMenu.isExpanded = true;
-      }
-    },
-
-    /**
-     * Ẩn dropdown menu
-     */
-    collapse() {
-      let me = this,
-        dropdownMenu = me.$refs.dropdownMenu;
-      if (me.isExpanded) {
-        me.isExpanded = dropdownMenu.isExpanded = false;
-      }
-    },
-
-    /**
-     * handle sự kiện khi click vào button dropdown
-     */
-    //TODO: trường hợp readOnly, disabled
-    onTriggerClick() {
-      let me = this;
-      me.$refs.comboInput.focus();
-      if (me.isExpanded) {
-        me.collapse();
-      } else {
-        me.doQuery("", true);
-      }
-    },
-
     /**
      * Chọn một item
      * item có 2 kiểu dữ liệu: Kiểu nguyên thủy, Object
@@ -741,17 +363,6 @@ export default {
       me.afterSelect(item, collapse);
     },
 
-    resetCombo() {
-      let me = this,
-        lastSelected = me.getLastSelected();
-
-      me.setRawValue("");
-      me.setSelected(null);
-      me.setSubmitValue(null);
-      me.$emit("selected", null, lastSelected, me);
-      me.setLastSelected(null);
-    },
-
     doSelect(item, silent) {
       let me = this,
         submitValue = me.getSubmitValue(item),
@@ -766,18 +377,14 @@ export default {
       me.setLastSelected(item);
     },
 
-    /**
-     * Bỏ chọn một item
-     */
-    deselect() {
-      // TODO: Not use yet
-    },
-
-    /**
-     * Update giá trị combo sau khi chọn
-     */
-    updateValue(item) {
+    resetCombo() {
       let me = this;
+
+      me.setRawValue("");
+      me.setSelected(null);
+      me.setSubmitValue(null);
+      // me.$emit("selected", null, lastSelected, me);
+      me.setLastSelected(null);
     },
 
     /**
@@ -791,28 +398,6 @@ export default {
     },
 
     /**
-     * Xử lý sau khi bỏ chọn
-     */
-    afterDeselect() {
-      // TODO: Not use yet
-    },
-
-    /**
-     * Kiểm tra item đã được chọn chưa
-     */
-    isItemSelected(item) {
-      let me = this;
-      return me.itemsComparator(me.selected, item);
-    },
-
-    /**
-     * So sánh giữa 2 items
-     */
-    itemsComparator(firstItem, secondItem) {
-      return _.isEqual(firstItem, secondItem);
-    },
-
-    /**
      * Handle sự kiện `click` ô input
      */
     onInputClick(event) {
@@ -820,36 +405,6 @@ export default {
       if (me.isReadOnly && !me.isDisabled) {
         me.onTriggerClick();
       }
-    },
-
-    /**
-     * Handle sự kiện `keydown` ô input
-     */
-    onInputKeyDown(event) {
-      let me = this;
-      switch (event.keycode) {
-        case 1:
-          break;
-      }
-    },
-
-    /**
-     * handle sự kiện `keyup` ô input
-     */
-    onInputKeyUp(event) {
-      let me = this;
-      switch (event.keycode) {
-        case 1:
-          break;
-      }
-    },
-
-    /**
-     * Handle sự kiện `focus` ô input
-     */
-    onInputFocus(event) {
-      let me = this;
-      me.isFocus = true;
     },
 
     /**
@@ -873,47 +428,59 @@ export default {
       // me.validateForceSelection();
     },
 
-    validateForceSelection() {
+    // validateForceSelection() {
+    //   let me = this;
+    //   // TODO: viết hàm này sau đó sử dụng setErrors của vee validate
+    //   if (me.rollbackLastSelected) {
+    //     // rollback lai
+    //   }
+    // },
+
+    onInput() {
       let me = this;
-      // TODO: viết hàm này sau đó sử dụng setErrors của vee validate
-      if (me.rollbackLastSelected) {
-        // rollback lai
+      me.doRawQuery();
+    },
+
+    doRawQuery() {},
+
+    doQuery(queryString, expand, highlightSelected) {
+      let me = this;
+      if (me.queryMode === "remote") {
+        me.doRemoteQuery(queryString, expand, highlightSelected);
+      } else {
+        me.doLocalQuery(queryString, expand, highlightSelected);
       }
+    },
+
+    doRemoteQuery() {},
+    doLocalQuery(queryString, expand, highlightSelected) {
+      let me = this;
+      me.store.load();
+      me.afterQuery(expand, highlightSelected);
     },
 
     /**
-     * Handle sự kiện `input` ô input
+     *  Xử lý sau khi query
+     * @param {Boolean} expand True nếu sau khi query hiện dropdown menu, false nếu không hiện
+     * @param {Boolean} highlightSelected True nếu sau khi expand sẽ highlight item đã được chọn trước đó
+     *
      */
-    onInput() {},
-
-    doRawQuery() {},
-    doQuery(queryString, expand) {
-      let me = this;
-      if (me.queryMode === "remote") {
-        me.doRemoteQuery(queryString, expand);
-      } else {
-        me.doLocalQuery(queryString, expand);
-      }
-    },
-    doRemoteQuery(queryString, expand) {},
-    doLocalQuery(queryString, expand) {
-      let me = this;
-      me.store.load();
-      me.afterQuery(expand);
-    },
-    afterQuery(expand) {
+    afterQuery(expand, highlightSelected) {
       let me = this,
-        rawValue = me.getRawValue();
+        rawValue = me.getRawValue(),
+        selected = me.getSelected();
+
+      if (selected && highlightSelected) {
+        let selectedIndex = _.findIndex(me.datax, selected);
+        me.typeAheadPointer = selectedIndex;
+        me.$nextTick(() => {
+          me.maybeAdjustScroll(true);
+        });
+      } else {
+        me.typeAheadPointer = 0;
+      }
       if (expand) {
         me.expand();
-      }
-
-      //TODO: Neu co item trung voi queryString thi select
-      if (rawValue) {
-        // let item = me.checkItemInList();
-        // if (item) {
-        //   me.select(item, false, false);
-        // }
       }
     },
 
@@ -924,31 +491,10 @@ export default {
     checkItemInList(rawValue) {
       let me = this;
       return me.getItemByDisplayValue(rawValue);
-    },
-    appendRules(currentRules, appendRules) {
-      return currentRules + "|" + appendRules;
     }
   },
-  created() {
-    let me = this;
-    me.initCombo();
-  },
-  mounted() {
-    let me = this,
-      value = me.getComboValue();
-
-    if (me.autoLoad) {
-      me.doQuery("", false);
-    }
-
-    if (me.isValid(value) && !me.isStoreEmpty()) {
-      me.doSelectValue(value);
-    }
-
-    if (me.defaultValue) {
-      me.setDefaultValue();
-    }
-  }
+  created() {},
+  mounted() {}
 };
 </script>
 

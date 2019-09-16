@@ -16,7 +16,7 @@
       <p>v-model: {{ currentItem.customer_id }}</p>
     </div>
 
-    <!-- <div class="test-area" style="width: 300px;">
+    <div class="test-area" style="width: 300px;">
       <my-combo-box
         title="combobox dropdownlist"
         tooltip="combobox tooltip"
@@ -31,9 +31,9 @@
         v-model="currentItem.customer_id"
       ></my-combo-box>
       <p>v-model: {{ currentItem.customer_id }}</p>
-    </div> -->
+    </div>
 
-    <!-- <div class="test-area" style="width: 300px;">
+    <div class="test-area" style="width: 300px;">
       <my-combo-box
         title="combobox columns"
         required
@@ -48,7 +48,7 @@
         v-model="currentItem.customer_id"
       ></my-combo-box>
       <p>v-model: {{ currentItem.customer_id }}</p>
-    </div> -->
+    </div>
 
     <div class="test-area">
       <validation-provider :rules="'required'" v-slot="{ errors }">
@@ -89,7 +89,8 @@ export default {
         },
         {
           title: "Tên khách hàng",
-          field: "customer_name"
+          field: "customer_name",
+          width: 250
         }
       ]
     };
@@ -102,7 +103,7 @@ export default {
             {
               customer_id: 1,
               customer_code: "KH01",
-              customer_name: "Nguyễn Văn A11111111111111111111111111111111111111111111111111111111111111111111"
+              customer_name: "Nguyễn Văn A"
             },
             {
               customer_id: 2,
@@ -131,6 +132,46 @@ export default {
             },
             {
               customer_id: 7,
+              customer_code: "KH07",
+              customer_name: "Nguyễn Văn G"
+            },
+            {
+              customer_id: 8,
+              customer_code: "KH07",
+              customer_name: "Nguyễn Văn G"
+            },
+            {
+              customer_id: 9,
+              customer_code: "KH07",
+              customer_name: "Nguyễn Văn G"
+            },
+            {
+              customer_id: 10,
+              customer_code: "KH07",
+              customer_name: "Nguyễn Văn G"
+            },
+            {
+              customer_id: 11,
+              customer_code: "KH07",
+              customer_name: "Nguyễn Văn G"
+            },
+            {
+              customer_id: 12,
+              customer_code: "KH07",
+              customer_name: "Nguyễn Văn G"
+            },
+            {
+              customer_id: 13,
+              customer_code: "KH07",
+              customer_name: "Nguyễn Văn G"
+            },
+            {
+              customer_id: 14,
+              customer_code: "KH07",
+              customer_name: "Nguyễn Văn G"
+            },
+            {
+              customer_id: 15,
               customer_code: "KH07",
               customer_name: "Nguyễn Văn G"
             }
