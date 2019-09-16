@@ -4,6 +4,7 @@
       <my-combo-box
         title="combobox dropdown"
         tooltip="combobox tooltip"
+        debug
         required
         hasAddButton
         hasQuickSearchButton
@@ -11,9 +12,9 @@
         queryMode="local"
         displayField="customer_name"
         valueField="customer_id"
-        v-model="currentItem.customer_id"
+        v-model="currentItem.customer_id_1"
       ></my-combo-box>
-      <p>v-model: {{ currentItem.customer_id }}</p>
+      <p>v-model: {{ currentItem.customer_id_1 }}</p>
     </div>
 
     <div class="test-area" style="width: 300px;">

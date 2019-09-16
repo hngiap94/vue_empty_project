@@ -82,11 +82,11 @@ export default {
      */
     viewport() {
       let me = this,
-        dropdownItems = me.$refs.dropdownMenu.$refs.dropdownItems;
+        itemsContainer = me.$refs.dropdownMenu.$refs.itemsContainer;
       return {
-        top: dropdownItems ? dropdownItems.scrollTop : 0,
-        bottom: dropdownItems
-          ? dropdownItems.scrollTop + dropdownItems.offsetHeight
+        top: itemsContainer ? itemsContainer.scrollTop : 0,
+        bottom: itemsContainer
+          ? itemsContainer.scrollTop + itemsContainer.offsetHeight
           : 0
       };
     },
@@ -98,9 +98,9 @@ export default {
      */
     scrollTo(position) {
       let me = this,
-        dropdownItems = me.$refs.dropdownMenu.$refs.dropdownItems;
+        itemsContainer = me.$refs.dropdownMenu.$refs.itemsContainer;
 
-      return dropdownItems ? (dropdownItems.scrollTop = position) : null;
+      return itemsContainer ? (itemsContainer.scrollTop = position) : null;
     }
   }
 };

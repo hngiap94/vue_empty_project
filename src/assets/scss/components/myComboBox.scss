@@ -105,14 +105,16 @@
     }
 
     .dropdown-menu-body-con {
+        max-height: 160px;
+        overflow-y: overlay;
+
         .dropdown-items {
-            max-height: 160px;
-            overflow-y: overlay;
 
             .dropdown-item {
                 height: 32px;
                 line-height: 32px;
                 padding: 0 10px;
+                white-space: nowrap;
                 cursor: pointer;
             }
 
@@ -128,8 +130,6 @@
     }
 
     .item__td {
-        height: 32px;
-        line-height: 32px;
         padding: 0 10px;
     }
 

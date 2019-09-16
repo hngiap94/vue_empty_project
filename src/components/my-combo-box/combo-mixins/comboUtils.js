@@ -196,6 +196,8 @@ export default {
        */
       queryString: "",
 
+      lastQueryString: "",
+
       /**
        * Trạng thái focus của combo
        */

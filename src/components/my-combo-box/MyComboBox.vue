@@ -9,13 +9,17 @@
 
     <!-- #region: main container -->
     <validation-provider
+      ref="provider"
       :rules="validateRules"
       :debounce="500"
-      v-slot="{invalid, errors}"
+      v-slot="{flags, invalid, errors}"
       :name="comboName"
     >
-      <p>{{invalid}}</p>
-      <p>{{errors}}</p>
+      <span v-if="debug">
+        <p>{{ flags }}</p>
+        <p>{{ invalid }}</p>
+        <p>{{ errors }}</p>
+      </span>
       <div class="combo-main-con" :class="{'combo--error': invalid}">
         <div class="select-options">
           <input
@@ -66,7 +70,7 @@
            'dropdown-item--highlight': itemIndex === typeAheadPointer
         }"
         @mouseover.stop="typeAheadPointer = itemIndex"
-        @click.prevent.stop="select(item, false, true)"
+        @click.prevent.stop="onClickSelect(item)"
       ></menu-item>
     </dropdown-menu>
     <!-- #endregion -->
@@ -102,6 +106,10 @@ export default {
     ValidationProvider
   },
   props: {
+    debug: {
+      type: Boolean,
+      default: false
+    },
     /**
      * TODO: Chưa sử dụng
      */
@@ -118,6 +126,11 @@ export default {
     mode: {
       type: String,
       default: "dropdown"
+    },
+
+    autoSelectFirst: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
@@ -317,6 +330,13 @@ export default {
       let me = this;
       return me.selected || null;
     },
+
+    getSelectedIndex() {
+      let me = this,
+        selected = me.getSelected();
+      return _.findIndex(me.datax, selected);
+    },
+
     setSelected(item) {
       let me = this;
       if (typeof item === "object") {
@@ -336,6 +356,12 @@ export default {
       } else {
         me.lastSelected = item;
       }
+    },
+
+    onClickSelect(item) {
+      let me = this;
+      me.select(item, false, true);
+      me.$refs.comboInput.focus();
     },
 
     /**
@@ -445,10 +471,19 @@ export default {
 
     doQuery(queryString, expand, highlightSelected) {
       let me = this;
-      if (me.queryMode === "remote") {
-        me.doRemoteQuery(queryString, expand, highlightSelected);
-      } else {
-        me.doLocalQuery(queryString, expand, highlightSelected);
+      try {
+        if (queryString === me.lastQueryString) {
+          me.expand();
+          // me.afterQuery(true);
+        }
+
+        if (me.queryMode === "remote") {
+          me.doRemoteQuery(queryString, expand, highlightSelected);
+        } else {
+          me.doLocalQuery(queryString, expand, highlightSelected);
+        }
+      } catch (error) {
+        console.log(error);
       }
     },
 
@@ -468,33 +503,58 @@ export default {
     afterQuery(expand, highlightSelected) {
       let me = this,
         rawValue = me.getRawValue(),
+        comboValue = me.getComboValue(),
         selected = me.getSelected();
 
-      if (selected && highlightSelected) {
-        let selectedIndex = _.findIndex(me.datax, selected);
-        me.typeAheadPointer = selectedIndex;
+      if (me.autoSelectFirst && !me.isStoreEmpty() && !selected) {
+        me.select(me.datax[0], false, true);
+      }
+
+      if (selected && highlightSelected && !me.isStoreEmpty()) {
+        me.typeAheadPointer = me.getSelectedIndex();
         me.$nextTick(() => {
           me.maybeAdjustScroll(true);
         });
       } else {
         me.typeAheadPointer = 0;
       }
+
+      if (comboValue && !selected && !me.isStoreEmpty()) {
+        me.doSelectValue(comboValue);
+      }
+
+      if (rawValue && !me.isStoreEmpty()) {
+        let item = me.getItemByDisplayValue(rawValue);
+        if (item) {
+          me.select(item, false, true);
+        }
+      }
+
+      if (!me.isFocus && rawValue && !me.isStoreEmpty()) {
+        if (forceSelection) {
+          let item = me.getItemByDisplayValue(rawValue);
+          if (!item) {
+            me.setComboErrors(["Dữ liệu không có trong danh sách"]);
+          }
+        } else {
+          me.setSubmitValue(rawValue);
+        }
+      }
+
       if (expand) {
         me.expand();
       }
     },
 
-    /**
-     * Tam thoi de trong ham
-     * sau nay co the khong dung ham nay
-     */
-    checkItemInList(rawValue) {
+    setComboErrors(messages) {
       let me = this;
-      return me.getItemByDisplayValue(rawValue);
+      me.$refs.provider.setErrors(messages);
     }
   },
   created() {},
-  mounted() {}
+  mounted() {
+    let me = this;
+  }
 };
 </script>
 

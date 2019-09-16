@@ -18,7 +18,7 @@
           </thead>
         </table>
       </div>
-      <div class="dropdown-menu-body-con">
+      <div ref="itemsContainer" class="dropdown-menu-body-con">
         <ul ref="dropdownItems" class="dropdown-items" v-if="comboType === 1">
           <slot></slot>
         </ul>
