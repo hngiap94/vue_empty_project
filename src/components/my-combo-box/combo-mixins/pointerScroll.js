@@ -42,11 +42,13 @@ export default {
      */
     pixelsToPointerTop() {
       let me = this,
-        pixelsToPointerTop = 0,
-        dropdownItems = me.$refs.dropdownMenu.$refs.dropdownItems;
-      if (dropdownItems) {
+        comboMenu = me.$refs.comboMenu,
+        pixelsToPointerTop = 0;
+
+      if (comboMenu) {
+        let menuItems = comboMenu.$refs.menuItems;
         for (let i = 0; i < me.typeAheadPointer; i++) {
-          pixelsToPointerTop += dropdownItems.children[i].offsetHeight;
+          pixelsToPointerTop += menuItems.children[i].offsetHeight;
         }
       }
       return pixelsToPointerTop;
@@ -67,38 +69,45 @@ export default {
      */
     pointerHeight() {
       let me = this,
-        dropdownItems = me.$refs.dropdownMenu.$refs.dropdownItems,
+        comboMenu = me.$refs.comboMenu,
         pointerHeight = 0;
-      if (dropdownItems) {
-        pointerHeight =
-          dropdownItems.children[me.typeAheadPointer].offsetHeight;
+
+      if (comboMenu) {
+        let menuItems = comboMenu.$refs.menuItems;
+        pointerHeight = menuItems.children[me.typeAheadPointer].offsetHeight;
       }
       return pointerHeight;
     },
 
     /**
-     * The currently viewable portion of the dropdownMenu.
+     * The currently viewable portion of the comboMenu.
      * @returns {{top: (string|*|number), bottom: *}}
      */
     viewport() {
       let me = this,
-        itemsContainer = me.$refs.dropdownMenu.$refs.itemsContainer;
-      return {
-        top: itemsContainer ? itemsContainer.scrollTop : 0,
-        bottom: itemsContainer
-          ? itemsContainer.scrollTop + itemsContainer.offsetHeight
-          : 0
-      };
+        comboMenu = me.$refs.comboMenu,
+        itemsContainer;
+
+      if (comboMenu) {
+        itemsContainer = comboMenu.$refs.itemsContainer;
+        return {
+          top: itemsContainer ? itemsContainer.scrollTop : 0,
+          bottom: itemsContainer
+            ? itemsContainer.scrollTop + itemsContainer.offsetHeight
+            : 0
+        };
+      }
+      return {};
     },
 
     /**
-     * Scroll the dropdownMenu to a given position.
+     * Scroll the comboMenu to a given position.
      * @param position
      * @returns {*}
      */
     scrollTo(position) {
       let me = this,
-        itemsContainer = me.$refs.dropdownMenu.$refs.itemsContainer;
+        itemsContainer = me.$refs.comboMenu.$refs.itemsContainer;
 
       return itemsContainer ? (itemsContainer.scrollTop = position) : null;
     }

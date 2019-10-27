@@ -5,11 +5,7 @@ export default {
     };
   },
 
-  watch: {
-    // filteredOptions() {
-    //   this.typeAheadPointer = 0
-    // }
-  },
+  watch: {},
 
   methods: {
     /**
@@ -44,15 +40,6 @@ export default {
     typeAheadSelect() {
       let me = this;
       me.select(me.datax[me.typeAheadPointer], false, true);
-      // if (this.filteredOptions[this.typeAheadPointer]) {
-      //   this.select(this.filteredOptions[this.typeAheadPointer]);
-      // } else if (this.taggable && this.search.length) {
-      //   this.select(this.search);
-      // }
-
-      // if (this.clearSearchOnSelect) {
-      //   this.search = "";
-      // }
     }
   }
 };

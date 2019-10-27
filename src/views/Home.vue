@@ -2,6 +2,19 @@
   <div class="home">
     <div class="test-area" style="width: 300px;">
       <my-combo-box
+        title="combobox 1"
+        required
+        tooltip="tooltip"
+        requiredVisible
+        hasQuickSearchButton
+        hasQuickAddButton
+        :store="comboBoxStore"
+        queryMode="local"
+        displayField="customer_name"
+        valueField="customer_id"
+        v-model="currentItem.customer_id_1"
+      ></my-combo-box>
+      <!-- <my-combo-box
         title="combobox dropdown"
         tooltip="combobox tooltip"
         debug
@@ -13,11 +26,11 @@
         displayField="customer_name"
         valueField="customer_id"
         v-model="currentItem.customer_id_1"
-      ></my-combo-box>
+      ></my-combo-box>-->
       <p>v-model: {{ currentItem.customer_id_1 }}</p>
     </div>
 
-    <div class="test-area" style="width: 300px;">
+    <!-- <div class="test-area" style="width: 300px;">
       <my-combo-box
         title="combobox dropdownlist"
         tooltip="combobox tooltip"
@@ -32,9 +45,9 @@
         v-model="currentItem.customer_id"
       ></my-combo-box>
       <p>v-model: {{ currentItem.customer_id }}</p>
-    </div>
+    </div>-->
 
-    <div class="test-area" style="width: 300px;">
+    <!-- <div class="test-area" style="width: 300px;">
       <my-combo-box
         title="combobox columns"
         required
@@ -49,7 +62,7 @@
         v-model="currentItem.customer_id"
       ></my-combo-box>
       <p>v-model: {{ currentItem.customer_id }}</p>
-    </div>
+    </div>-->
 
     <div class="test-area">
       <validation-provider :rules="'required'" v-slot="{ errors }">
