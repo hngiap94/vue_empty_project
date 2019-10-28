@@ -504,7 +504,7 @@ export default {
       let me = this;
 
       me.setRawValue("");
-      me.setSelected(null);
+      me.setSelected(null);isItemSelected
       me.setSubmitValue(null);
       // me.$emit("selected", null, lastSelected, me);
       me.setLastSelected(null);

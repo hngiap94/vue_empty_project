@@ -26,10 +26,16 @@
       <!-- :class="{'combo--error': invalid}" -->
       <div class="combo-main-con">
         <div class="select-options">
+          <div class="selected-items" v-if="multiple">
+            <div class="selected-item" v-for="(item, index) in selected" :key="index">
+              <div class="selected-item__text">{{ getItemDisplayValue(item) }}</div>
+              <div class="deselect-btn" @click="deselect(item)">x</div>
+            </div>
+          </div>
           <!-- 
             :title="errors[0]"
             v-on="listeners"
-          v-model="queryString"-->
+          -->
           <input
             type="text"
             ref="comboInput"
@@ -37,6 +43,7 @@
             :placeholder="placeholder"
             :readonly="!editable || isReadOnly"
             :disabled="isDisabled"
+            v-model="queryString"
           />
         </div>
         <div class="combo-actions">
@@ -221,6 +228,11 @@ export default {
       default: "dropdown"
     },
 
+    multiple: {
+      type: Boolean,
+      default: false
+    },
+
     /**
      * Lựa chọn combo dạng tree
      */
@@ -330,7 +342,7 @@ export default {
       /**
        * Chứa danh sách item được chọn trước đó
        */
-      lastSelected: [],
+      lastSelected: null,
 
       /**
        * Chứa chuỗi input người dùng nhập vào
@@ -630,6 +642,7 @@ export default {
 
     /**
      * lấy ra giá trị của item dựa vào valueField
+     * TODO: valueField is array
      */
     getItemValue(item) {
       let me = this;
@@ -659,6 +672,14 @@ export default {
      */
     setSubmitValue(value) {
       let me = this;
+      if (me.multiple) {
+        let comboValue = me.getComboValue();
+        if (me.isValid(comboValue)) {
+          value = comboValue.concat(value);
+        } else {
+          value = [].concat(value);
+        }
+      }
       me.$emit("input", value);
     },
 
@@ -683,12 +704,19 @@ export default {
      * Lưu item được chọn
      */
     setSelected(item) {
-      // let me = this;
-      // if (typeof item === "object") {
-      //   me.selected = Object.assign({}, item);
-      // } else {
-      //   me.selected = item;
-      // }
+      let me = this,
+        itemSelected = null;
+      if (typeof item === "object") {
+        itemSelected = Object.assign({}, item);
+      } else {
+        itemSelected = item;
+      }
+
+      if (me.multiple) {
+        me.selected = me.selected.concat(itemSelected);
+      } else {
+        me.selected = [].concat(itemSelected);
+      }
     },
 
     /**
@@ -702,16 +730,74 @@ export default {
     /**
      * Lưu item được chọn trước đó
      */
-    setLastSelected() {
-      // let me = this;
-      // if (typeof item === "object") {
-      //   me.lastSelected = Object.assign({}, item);
-      // } else {
-      //   me.lastSelected = item;
-      // }
+    setLastSelected(item) {
+      let me = this;
+      if (typeof item === "object") {
+        me.lastSelected = Object.assign({}, item);
+      } else {
+        me.lastSelected = item;
+      }
     },
 
-    onClickSelect() {},
+    /**
+     * Kiểm tra item đã được chọn chưa
+     */
+    isItemSelected(item) {
+      let me = this;
+      return false;
+      // return me.itemsComparator(me.selected, item);
+    },
+
+    /**
+     * So sánh giữa 2 items
+     */
+    // itemsComparator(firstItem, secondItem) {
+    //   return _.isEqual(firstItem, secondItem);
+    // },
+
+    onClickSelect(item) {
+      debugger;
+
+      let me = this;
+      me.select(item, false, true);
+      me.$refs.comboInput.focus();
+    },
+
+    select(item, silent, collapse) {
+      let me = this;
+      debugger;
+      if (me.multiple) {
+        me.setSelected(item);
+        let submitValue = me.getSubmitValue(item);
+        me.setSubmitValue(submitValue);
+        let lastSelected = me.getLastSelected();
+        if (!silent) {
+          me.$emit("selected", item, lastSelected, me);
+        }
+        me.setLastSelected(item);
+      } else {
+        // set raw value tránh trường hợp người dùng xóa đi chọn lại item đã chọn
+        let displayValue = me.getItemDisplayValue(item);
+        me.setRawValue(displayValue);
+
+        // Nếu item đã được chọn trước đó không tiến hành chọn lại
+        if (!me.isItemSelected(item)) {
+          me.setSelected(item);
+          let submitValue = me.getSubmitValue(item);
+          me.setSubmitValue(submitValue);
+          let lastSelected = me.getLastSelected();
+          if (!silent) {
+            me.$emit("selected", item, lastSelected, me);
+          }
+          me.setLastSelected(item);
+        }
+      }
+    },
+    deselect(item) {
+      let me = this;
+      let itemIndex = _.findIndex(me.selected, item);
+      me.selected.splice(itemIndex, 1);
+    },
 
     /**
      * hiện dropdown menu

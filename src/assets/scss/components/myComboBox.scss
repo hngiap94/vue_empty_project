@@ -35,6 +35,30 @@
             display: flex;
             flex: 1;
 
+            .selected-items {
+                display: flex;
+                align-items: center;
+                padding-left: 5px;
+
+                .selected-item {
+                    display: flex;
+                    height: 20px;
+                    border-radius: 3px;
+                    background-color: #dedede;
+                    margin-right: 5px;
+
+                    .selected-item__text {
+                        white-space: nowrap;
+                    }
+
+                    .deselect-btn {
+                        width: 20px;
+                        padding-left: 7px;
+                        cursor: pointer;
+                    }
+                }
+            }
+
             .combo-input {
                 flex: 1;
                 border: none;
@@ -57,6 +81,7 @@
                 width: 32px;
                 cursor: pointer;
             }
+
             .btn-quick-search:hover,
             .btn-quick-add:hover,
             .btn-arrow-dropdown:hover {
